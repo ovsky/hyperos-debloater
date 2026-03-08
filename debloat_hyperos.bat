@@ -1,8 +1,12 @@
 @echo off
 setlocal EnableDelayedExpansion
 mode con: cols=120 lines=50
-title Xiaomi HyperOS Debloat Commander v16.0
+title Xiaomi HyperOS Debloat Commander v17.0
 cd /d "%~dp0"
+
+:: Ensure ADB command is absolute if present in folder, else rely on PATH
+set "ADB_CMD=adb"
+if exist "%~dp0adb.exe" set "ADB_CMD="%~dp0adb.exe""
 
 :: ===============================================================================================
 ::  CONFIGURATION & APP DEFINITIONS
@@ -14,7 +18,7 @@ set "apps_p1=com.miui.analytics com.miui.msa.global com.miui.daemon com.xiaomi.j
 :: 2. PHASE 2: ADVANCED LIST (User-Facing Apps)
 set "apps_p2=com.miui.compass com.miui.weather2 com.miui.notes com.miui.calculator com.miui.videoplayer com.miui.player com.xiaomi.glgm com.miui.gallery com.xiaomi.midrop com.miui.fmservice com.miui.fm com.android.stk com.xiaomi.payment com.xiaomi.vipaccount com.duokan.phone.remotecontroller com.xiaomi.smarthome com.android.calendar com.miui.calendar com.android.deskclock com.android.providers.downloads.ui com.android.fileexplorer com.mi.android.globalFileexplorer com.android.soundrecorder com.android.email com.miui.screenrecorder com.miui.huanji com.android.browser com.miui.browser cn.wps.moffice_eng.xiaomi.lite com.miui.qr com.miui.mediaviewer com.miui.mediaeditor"
 
-:: 3. PHASE 3: RISKY SYSTEM Apps (Requested by User)
+:: 3. PHASE 3: RISKY SYSTEM APPS (Requested by User)
 set "apps_p3=com.miui.personalassistant com.miui.appvault com.miui.themestore com.android.thememanager com.xiaomi.thememanager com.miui.findmy com.xiaomi.finddevice com.xiaomi.scanner com.miui.scanner com.xiaomi.market com.xiaomi.mipicks com.miui.securitycenter com.xiaomi.account com.miui.cloudservice com.miui.micloudsync com.miui.cloudbackup com.xiaomi.roaming com.miui.roaming"
 
 :: 4. PHASE 4: HIDDEN SYSTEM APPS (Canta Suggestions & HyperOS Background)
@@ -44,14 +48,14 @@ set "TXT_MAG=%ESC%[95m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
-:: 7. Log File Setup
-set "CUR_YYYY=%date:~-4%"
-set "CUR_MM=%date:~-7,2%"
-set "CUR_DD=%date:~-10,2%"
-set "CUR_HH=%time:~0,2%"
-set "CUR_NN=%time:~3,2%"
-if "%CUR_HH:~0,1%" == " " set "CUR_HH=0%CUR_HH:~1,1%"
-set "LOGFILE=Debloat_Log_%CUR_YYYY%-%CUR_MM%-%CUR_DD%_%CUR_HH%%CUR_NN%.txt"
+:: 7. Safe Log File Setup (Fixes "Drive Specified" Crash)
+set "SAFE_DT=%DATE:/=-%"
+set "SAFE_DT=%SAFE_DT:\=-%"
+set "SAFE_DT=%SAFE_DT:.=-%"
+set "SAFE_TM=%TIME::=-%"
+set "SAFE_TM=%SAFE_TM:.=-%"
+set "SAFE_TM=%SAFE_TM: =0%"
+set "LOGFILE=Debloat_Log_%SAFE_DT%_%SAFE_TM%.txt"
 
 echo [LOG STARTED] > "%LOGFILE%"
 echo Target OS: Xiaomi HyperOS >> "%LOGFILE%"
@@ -65,14 +69,14 @@ color 0B
 cls
 echo.
 echo  %TXT_GRAY%====================================================================================================================%RESET%
-echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT COMMANDER %TXT_CYAN%-%TXT_WHT% v16.0 Ultimate %TXT_CYAN%-%TXT_WHT% System Ready%RESET%
+echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT COMMANDER %TXT_CYAN%-%TXT_WHT% v17.0 Ultimate %TXT_CYAN%-%TXT_WHT% System Ready%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo.
 echo  %TXT_CYAN%  [+]%TXT_WHT% Target OS:       Xiaomi HyperOS / MIUI (Android 13/14+)%RESET%
 echo  %TXT_CYAN%  [+]%TXT_WHT% Database:        130+ Bloatware Packages Loaded (4 Phases)%RESET%
 echo.
 echo  %BG_CYAN%  STATUS: WAITING FOR DEVICE...                                                                                     %RESET%
-adb start-server >nul 2>&1
+!ADB_CMD! start-server >nul 2>&1
 
 :: ===============================================================================================
 ::  STEP 1: DEVICE CONNECTION
@@ -82,11 +86,11 @@ echo.
 echo  %TXT_GRAY%  Scanning USB ports...%RESET%
 
 set count=0
-for /f "skip=1 tokens=1,*" %%a in ('adb devices -l') do (
+for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
     if not "%%a" == "" (
         set /a count+=1
         set "device[!count!]=%%a"
-        for /f "tokens=*" %%m in ('adb -s %%a shell getprop ro.product.model') do set "model[!count!]=%%m"
+        for /f "tokens=*" %%m in ('!ADB_CMD! -s %%a shell getprop ro.product.model') do set "model[!count!]=%%m"
     )
 )
 
@@ -108,12 +112,12 @@ if %count%==1 (
     echo  %BG_GRN%  DEVICE CONNECTED                                                                                                  %RESET%
     echo  %TXT_GRN%  [v]%RESET% Model: %TXT_WHT%!TARGET_MODEL!%RESET%
     echo  %TXT_GRN%  [v]%RESET% ID:    %TXT_WHT%!TARGET_ID!%RESET%
-    
+
     :: Save Device info to Log
     echo Device Model: !TARGET_MODEL! >> "%LOGFILE%"
     echo Device ID: !TARGET_ID! >> "%LOGFILE%"
     echo -------------------------------------------------------- >> "%LOGFILE%"
-    
+
     timeout /t 1 >nul
     goto MAIN_MENU
 )
@@ -184,33 +188,29 @@ echo  %TXT_GRAY%Filtering and sorting database apps against your device... Pleas
 if exist "%temp%\matched_apps.txt" del "%temp%\matched_apps.txt"
 
 if "!SHOW_ACTIVE_ONLY!"=="1" (
-    :: Pull ONLY active/enabled packages
-    adb -s !TARGET_ID! shell pm list packages -e > "%temp%\device_apps.txt"
+    !ADB_CMD! -s !TARGET_ID! shell pm list packages -e > "%temp%\device_apps.txt" 2>nul
 ) else (
-    :: Pull ALL packages including uninstalled for user 0
-    adb -s !TARGET_ID! shell pm list packages -u > "%temp%\device_apps.txt"
+    !ADB_CMD! -s !TARGET_ID! shell pm list packages -u > "%temp%\device_apps.txt" 2>nul
 )
 
-:: Find matches and write them to a temp file for sorting (Format: AppName|PackageID)
 for %%p in (!all_db_apps!) do (
-    findstr /I /C:"package:%%p" "%temp%\device_apps.txt" >nul
+    findstr /I /C:"package:%%p" "%temp%\device_apps.txt" >nul 2>&1
     if !errorlevel! equ 0 (
         call :GET_APP_NAME %%p
         echo !APP_LABEL!^|%%p>> "%temp%\matched_apps.txt"
     )
 )
-if exist "%temp%\device_apps.txt" del "%temp%\device_apps.txt"
+if exist "%temp%\device_apps.txt" del "%temp%\device_apps.txt" >nul 2>&1
 
 set "total_apps=0"
 
-:: Sort the temp file alphabetically by App Name and build the arrays
 if exist "%temp%\matched_apps.txt" (
     for /f "tokens=1,2 delims=|" %%A in ('sort "%temp%\matched_apps.txt"') do (
         set /a total_apps+=1
         set "app_list[!total_apps!]=%%A ^(%%B^)"
         set "app_pkg[!total_apps!]=%%B"
     )
-    del "%temp%\matched_apps.txt"
+    del "%temp%\matched_apps.txt" >nul 2>&1
 )
 
 if !total_apps!==0 (
@@ -334,21 +334,21 @@ if "!ACT_CHOICE!"=="4" goto EXPLORER_REBUILD_LIST
 echo.
 if "!ACT_CHOICE!"=="1" (
     echo  %TXT_GRAY%Executing: pm disable-user --user 0 !sel_pkg!...%RESET%
-    adb -s !TARGET_ID! shell pm disable-user --user 0 !sel_pkg! >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell pm disable-user --user 0 !sel_pkg! >nul 2>&1
     echo  %TXT_GRN%[OK] Freeze command sent.%RESET%
     echo  %time% ^| FREEZE ^| !sel_pkg! ^| Interactive Explorer >> "%LOGFILE%"
 )
 if "!ACT_CHOICE!"=="2" (
     echo  %TXT_GRAY%Executing: pm uninstall --user 0 !sel_pkg!...%RESET%
-    adb -s !TARGET_ID! shell pm uninstall --user 0 !sel_pkg! >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell pm uninstall --user 0 !sel_pkg! >nul 2>&1
     echo  %TXT_GRN%[OK] Uninstall command sent.%RESET%
     echo  %time% ^| UNINSTALL ^| !sel_pkg! ^| Interactive Explorer >> "%LOGFILE%"
 )
 if "!ACT_CHOICE!"=="3" (
     echo  %TXT_GRAY%Executing: cmd package install-existing !sel_pkg!...%RESET%
-    adb -s !TARGET_ID! shell cmd package install-existing !sel_pkg! >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing !sel_pkg! >nul 2>&1
     echo  %TXT_GRAY%Executing: pm enable !sel_pkg!...%RESET%
-    adb -s !TARGET_ID! shell pm enable !sel_pkg! >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell pm enable !sel_pkg! >nul 2>&1
     echo  %TXT_GRN%[OK] App Restored / Unfrozen.%RESET%
     echo  %time% ^| RESTORE ^| !sel_pkg! ^| Interactive Explorer >> "%LOGFILE%"
 )
@@ -386,7 +386,7 @@ echo  Press %TXT_GRN%[F]%RESET% to Freeze, %TXT_RED%[U]%RESET% to Uninstall, or 
 
 choice /c FUR /n >nul
 if errorlevel 3 (
-    set "CMD_ACTION=cmd package install-existing"
+    set "CMD_ACTION=RESTORE"
     set "MODE_NAME=RESTORE"
     set "MODE_VERB=Restore"
     set "LOG_MODE=RESTORED"
@@ -434,9 +434,9 @@ echo.
 echo  %TXT_GRAY%--------------------------------------------------------------------------------------------------------------------%RESET%
 echo.
 if "!DO_LIVE_CHECK!"=="1" (
-    echo  %TXT_CYAN%[2] Smart Filtering - Process Only Installed Apps%RESET%
-    echo      Automatically skips asking/sending commands for apps that are already 
-    echo      "Not Installed / Removed" to save time during the debloat loop.
+    echo  %TXT_CYAN%[2] Smart Filtering ^(Context-Aware Auto-Skip^)%RESET%
+    echo      Debloat Mode: Skips apps that are already uninstalled or frozen.
+    echo      Restore Mode: Skips apps that are already active.
     echo.
     echo  Press %TXT_GRN%[Y]%RESET%es to Enable or %TXT_RED%[N]%RESET%o to Disable...
     choice /c YN /n >nul
@@ -448,9 +448,9 @@ if "!DO_LIVE_CHECK!"=="1" (
         echo  -^> %TXT_GRN%Smart Filtering Enabled.%RESET%
     )
 ) else (
-    echo  %TXT_GRAY%[2] Smart Filtering - Process Only Installed Apps%RESET%
-    echo  %TXT_GRAY%    Automatically skips asking/sending commands for apps that are already%RESET%
-    echo  %TXT_GRAY%    "Not Installed / Removed" to save time during the debloat loop.%RESET%
+    echo  %TXT_GRAY%[2] Smart Filtering ^(Context-Aware Auto-Skip^)%RESET%
+    echo  %TXT_GRAY%    Debloat Mode: Skips apps that are already uninstalled or frozen.%RESET%
+    echo  %TXT_GRAY%    Restore Mode: Skips apps that are already active.%RESET%
     echo.
     echo  %TXT_GRAY%    [!] Option unavailable. Requires "Live App State Checking" to be Enabled.%RESET%
     set "SKIP_NOT_INSTALLED=0"
@@ -705,45 +705,73 @@ set "CHK_PKG=%~1"
 set "APP_STATE=Not Installed / Removed"
 set "APP_STATE_COLOR=%TXT_GRAY%"
 
-:: 1. Check if it exists in the system at all (including uninstalled for user 0)
-adb -s !TARGET_ID! shell pm list packages -u | findstr /E /C:"package:!CHK_PKG!" >nul 2>&1
+!ADB_CMD! -s !TARGET_ID! shell pm list packages -u !CHK_PKG! > "%temp%\adb_chk.txt" 2>nul
+findstr /I /E /C:"package:!CHK_PKG!" "%temp%\adb_chk.txt" >nul 2>&1
 if !errorlevel! equ 0 (
     set "APP_STATE=Uninstalled (User 0)"
     set "APP_STATE_COLOR=%TXT_YEL%"
-    
-    :: 2. Check if it is currently Active for the user
-    adb -s !TARGET_ID! shell pm list packages | findstr /E /C:"package:!CHK_PKG!" >nul 2>&1
+
+    !ADB_CMD! -s !TARGET_ID! shell pm list packages !CHK_PKG! > "%temp%\adb_chk.txt" 2>nul
+    findstr /I /E /C:"package:!CHK_PKG!" "%temp%\adb_chk.txt" >nul 2>&1
     if !errorlevel! equ 0 (
         set "APP_STATE=Installed (Active)"
         set "APP_STATE_COLOR=%TXT_GRN%"
     )
-    
-    :: 3. Check if it is Frozen/Disabled
-    adb -s !TARGET_ID! shell pm list packages -d | findstr /E /C:"package:!CHK_PKG!" >nul 2>&1
+
+    !ADB_CMD! -s !TARGET_ID! shell pm list packages -d !CHK_PKG! > "%temp%\adb_chk.txt" 2>nul
+    findstr /I /E /C:"package:!CHK_PKG!" "%temp%\adb_chk.txt" >nul 2>&1
     if !errorlevel! equ 0 (
         set "APP_STATE=Frozen (Disabled)"
         set "APP_STATE_COLOR=%TXT_CYAN%"
     )
 )
+if exist "%temp%\adb_chk.txt" del "%temp%\adb_chk.txt" >nul 2>&1
 goto :eof
 
 :EXECUTE_ACTION
 set "pkg=%~1"
 set "lbl=%~2"
 set "type=%~3"
-if "%type%"=="SAFE" (set "THEME_BG=%BG_GRN%") 
+if "%type%"=="SAFE" (set "THEME_BG=%BG_GRN%")
 if "%type%"=="CAUTION" (set "THEME_BG=%BG_YEL%")
 if "%type%"=="DANGER" (set "THEME_BG=%BG_RED%")
 if "%type%"=="HIDDEN" (set "THEME_BG=%BG_MAG%")
 
 if "%DO_LIVE_CHECK%"=="1" (
     call :CHECK_APP_STATE %pkg%
+
     if "!SKIP_NOT_INSTALLED!"=="1" (
-        if "!APP_STATE!"=="Not Installed / Removed" (
+        set "SHOULD_SKIP=0"
+        set "SKIP_REASON="
+
+        :: Smart Filter: Context-Aware Logic
+        if "!MODE_NAME!"=="RESTORE" (
+            if "!APP_STATE!"=="Installed (Active)" (
+                set "SHOULD_SKIP=1"
+                set "SKIP_REASON=App is already Installed and Active"
+            )
+        ) else (
+            if "!APP_STATE!"=="Not Installed / Removed" (
+                set "SHOULD_SKIP=1"
+                set "SKIP_REASON=Not Installed"
+            ) else if "!APP_STATE!"=="Uninstalled (User 0)" (
+                if "!MODE_NAME!"=="UNINSTALL" (
+                    set "SHOULD_SKIP=1"
+                    set "SKIP_REASON=Already Uninstalled"
+                )
+            ) else if "!APP_STATE!"=="Frozen (Disabled)" (
+                if "!MODE_NAME!"=="FREEZE" (
+                    set "SHOULD_SKIP=1"
+                    set "SKIP_REASON=Already Frozen"
+                )
+            )
+        )
+
+        if "!SHOULD_SKIP!"=="1" (
             echo  %TXT_GRAY%--------------------------------------------------------------------------------------------------------------------%RESET%
             echo  Processing: %TXT_WHT%!lbl!%RESET% ^(!pkg!^)
             echo  App Status: !APP_STATE_COLOR!!APP_STATE!%RESET%
-            echo  %TXT_YEL%[!] Skipped automatically ^(Not Installed^).%RESET%
+            echo  %TXT_YEL%[!] Skipped automatically ^(!SKIP_REASON!^).%RESET%
             echo.
             timeout /t 1 >nul
             goto :eof
@@ -757,10 +785,16 @@ if "%DO_LIVE_CHECK%"=="1" (
 echo  %TXT_GRAY%--------------------------------------------------------------------------------------------------------------------%RESET%
 echo  Processing: %TXT_WHT%!lbl!%RESET% ^(!pkg!^)
 echo  App Status: !APP_STATE_COLOR!!APP_STATE!%RESET%
-echo  Executing Action: %CMD_ACTION%...
 
-:: Execution is hidden so ugly Java exceptions do not pollute the terminal screen
-adb -s !TARGET_ID! shell %CMD_ACTION% %pkg% >nul 2>&1
+if "!MODE_NAME!"=="RESTORE" (
+    echo  Executing Action: RESTORE...
+    !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing %pkg% >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1
+) else (
+    echo  Executing Action: %CMD_ACTION%...
+    !ADB_CMD! -s !TARGET_ID! shell %CMD_ACTION% %pkg% >nul 2>&1
+)
+
 echo  %TXT_GRN%[OK] Command Sent.%RESET%
 
 echo  %time% ^| %MODE_VERB% ^| %pkg% ^| !lbl! >> "%LOGFILE%"
@@ -772,22 +806,46 @@ goto :eof
 set "pkg=%~1"
 set "lbl=%~2"
 set "type=%~3"
-if "%type%"=="SAFE" (set "THEME_BG=%BG_GRN%") 
+if "%type%"=="SAFE" (set "THEME_BG=%BG_GRN%")
 if "%type%"=="CAUTION" (set "THEME_BG=%BG_YEL%")
 if "%type%"=="DANGER" (set "THEME_BG=%BG_RED%")
 if "%type%"=="HIDDEN" (set "THEME_BG=%BG_MAG%")
 
 if "%DO_LIVE_CHECK%"=="1" (
-    :: Show "Reading info" animation (parentheses safely escaped to prevent syntax crash)
     cls
     call :PRINT_MANUAL_HEADER
     echo  %TXT_GRAY%Reading info about app: %TXT_WHT%!lbl!%TXT_GRAY% ^(!pkg!^)...%RESET%
     call :CHECK_APP_STATE %pkg%
-    
+
     if "!SKIP_NOT_INSTALLED!"=="1" (
-        if "!APP_STATE!"=="Not Installed / Removed" (
+        set "SHOULD_SKIP=0"
+        set "SKIP_REASON="
+
+        if "!MODE_NAME!"=="RESTORE" (
+            if "!APP_STATE!"=="Installed (Active)" (
+                set "SHOULD_SKIP=1"
+                set "SKIP_REASON=App is already Installed and Active"
+            )
+        ) else (
+            if "!APP_STATE!"=="Not Installed / Removed" (
+                set "SHOULD_SKIP=1"
+                set "SKIP_REASON=Not Installed"
+            ) else if "!APP_STATE!"=="Uninstalled (User 0)" (
+                if "!MODE_NAME!"=="UNINSTALL" (
+                    set "SHOULD_SKIP=1"
+                    set "SKIP_REASON=Already Uninstalled"
+                )
+            ) else if "!APP_STATE!"=="Frozen (Disabled)" (
+                if "!MODE_NAME!"=="FREEZE" (
+                    set "SHOULD_SKIP=1"
+                    set "SKIP_REASON=Already Frozen"
+                )
+            )
+        )
+
+        if "!SHOULD_SKIP!"=="1" (
             echo.
-            echo  %TXT_YEL%[!] App is not installed. Skipping automatically...%RESET%
+            echo  %TXT_YEL%[!] Skipped automatically ^(!SKIP_REASON!^).%RESET%
             timeout /t 1 >nul
             goto :eof
         )
@@ -819,7 +877,7 @@ choice /c !CHOICES! /n >nul
 if errorlevel 4 (
     echo.
     echo  Processing: Unfreezing !lbl!...
-    adb -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1
+    !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1
     echo  %time% ^| UNFREEZE ^| %pkg% ^| !lbl! >> "%LOGFILE%"
     timeout /t 1 >nul
     goto :eof
