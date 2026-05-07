@@ -19,6 +19,62 @@ A powerful, interactive, and user-friendly Windows Batch script designed to safe
 On newer versions of HyperOS (Android 14+), Xiaomi has blocked the standard `pm disable-user` (Freeze) command for system apps, which throws a `SecurityException`. 
 **Solution:** This script fully supports the **Uninstall for User 0** method. It acts exactly like a freeze, hides the app, stops it from running, frees up system resources, and is completely reversible.
 
+## 📙 User Friendly Interface
+
+<details>
+<summary>Initial Device Detection</summary>
+<img src="./data/interface/device_detection.png" width="800">
+</details>
+
+---
+
+<details>
+<summary>Malware App Management</summary>
+<img src="./data/interface/workflow_app_management.png" width="800">
+</details>
+
+---
+
+<details>
+<summary>Malware Automatic Debloating</summary>
+<img src="./data/interface/workflow_debloating.png" width="800">
+</details>
+
+---
+
+<details>
+<summary>Malware Manual Debloating [Select App To Freeze or Uninstall]</summary>
+<img src="./data/interface/workflow_interactive.png" width="800">
+</details>
+
+## 🌩️ Adware/Malware Collection
+
+---
+
+![Safe Malware Apps](./data/apps_preview/debloat_safe.png)
+
+> The most popular apps that are safe to remove and are mostly useless
+
+---
+
+![Advanced Malware Apps](./data/apps_preview/debloat_advanced.png)
+
+> Malware apps used by Xiaomi/POCO/Redmi/Black Shark to track and share data
+
+---
+
+![System Malware Apps](./data/apps_preview/debloat_system.png)
+
+> System apps that can be replaced by way better alternatives like open-source ones
+
+---
+
+![Hidden Malware Apps](./data/apps_preview/debloat_system.png)
+
+> Hidden malware apps which are mostly useless but works in background 
+
+---
+
 ## 🛠️ Prerequisites
 
 1. **Windows PC** (Tested on Windows 10/11).
@@ -61,7 +117,7 @@ If you launch the Interactive App Explorer, use the following keys to navigate:
 
 ## 🛑 Disclaimer
 
-**Use at your own risk.** While this script categorizes apps by risk level, removing the wrong core system app (especially in Phase 3) can result in a bootloop, requiring a factory reset. Always research an app package before removing it if you do not know what it does. 
+**Use at your own risk.** While this script categorizes apps by risk level, removing the wrong core system app (especially in Phase 3), requiring a factory reset, depending on your device. Always research an app package before removing it if you do not know what it does. 
 
 I am not responsible for bricked devices, lost data, or voided warranties.
 
