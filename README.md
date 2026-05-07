@@ -69,7 +69,7 @@ On newer versions of HyperOS (Android 14+), Xiaomi has blocked the standard `pm 
 
 ---
 
-![Hidden Malware Apps](./data/apps_preview/debloat_system.png)
+![Hidden Malware Apps](./data/apps_preview/debloat_hidden.png)
 
 > Hidden malware apps which are mostly useless but works in background 
 
