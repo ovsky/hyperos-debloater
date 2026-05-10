@@ -4,7 +4,10 @@
                      "smartFiltering":  true,
                      "showPreview":  false,
                      "logToText":  true,
-                     "defaultAdbPath":  "adb.exe"
+                     "defaultAdbPath":  "adb.exe",
+                     "simulationMode":  false,
+                     "disableInsteadOfUninstall":  false,
+                     "rebootAfterRestore":  false
                  },
     "phases":  {
                    "phase1_safe":  [
