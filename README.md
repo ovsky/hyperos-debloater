@@ -25,7 +25,7 @@ After months of testing various approaches, I've built a safe, rootless debloate
 * **📡 Live State Tracking:** Queries your device in real-time to display exact app statuses (`Installed`, `Uninstalled (User 0)`, or `Frozen`).
 * **🧠 Smart Filtering:** Automatically bypasses apps already removed from your device, significantly speeding up manual review processes.
 * **🛡️ 4-Phase Safety Architecture:** Apps are strictly categorized from completely safe (Ads/Analytics) to highly risky (Core System apps), granting you absolute control over the debloating depth.
-* **📝 Granular Logging:** Every action is meticulously recorded to a dynamically generated `.txt` log file, complete with your Device Model, ID, and precise timestamps.
+* **📝 Granular Logging:** Every action is meticulously recorded to a dynamically generated `.log` log file, complete with your Device Model, ID, and precise timestamps.
 * **🔄 100% Reversible:** A built-in Recovery Mode allows you to instantly reinstall or unfreeze *any* app you previously modified.
 
 ---
