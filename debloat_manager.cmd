@@ -18,6 +18,7 @@ set "TXT_CYAN=%ESC%[96m"
 set "TXT_GRN=%ESC%[92m"
 set "TXT_YEL=%ESC%[93m"
 set "TXT_RED=%ESC%[91m"
+set "TXT_MAG=%ESC%[95m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
@@ -27,8 +28,11 @@ if not exist "%CONFIG_PATH%" (
 )
 
 :MAIN_MENU
-:: Read Joyose Action from JSON via PowerShell
-for /f "delims=" %%A in ('powershell -NoProfile -Command "(Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json).settings.joyoseAction"') do set "JOYOSE_ACTION=%%A"
+:: Fetch Joyose setting safely via file creation method
+set "TEMP_MGR_VARS=%temp%\hyperos_mgr_init_%RANDOM%.cmd"
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; 'set JOYOSE_ACTION=' + $c.settings.joyoseAction" > "%TEMP_MGR_VARS%"
+call "%TEMP_MGR_VARS%"
+del "%TEMP_MGR_VARS%"
 
 cls
 echo.
@@ -89,27 +93,27 @@ if errorlevel 3 set "NEW_JOYOSE=KEEP"
 if errorlevel 2 set "NEW_JOYOSE=REMOVE"
 if errorlevel 1 set "NEW_JOYOSE=ASK"
 
-:: Write change to JSON using PowerShell
 powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $c.settings.joyoseAction = '%NEW_JOYOSE%'; $c | ConvertTo-Json -Depth 5 | Set-Content '%CONFIG_PATH%'"
-
 echo.
 echo  %TXT_GRN%[v] JSON Configuration updated.%RESET%
 timeout /t 2 >nul
 goto MAIN_MENU
 
 :CONFIG_ADVANCED
-:: Fetch current boolean settings using the secure Temp File method
+:: Fetch current boolean settings using the safe redirection method
 set "TEMP_MGR_VARS=%temp%\hyperos_mgr_vars_%RANDOM%.cmd"
-powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $out = @(); $out += 'set \"V_SMART=' + [int][bool]$c.settings.smartFiltering + '\"'; $out += 'set \"V_PREVIEW=' + [int][bool]$c.settings.showPreview + '\"'; $out += 'set \"V_LOG=' + [int][bool]$c.settings.logToText + '\"'; $out += 'set \"V_SIM=' + [int][bool]$c.settings.simulationMode + '\"'; $out += 'set \"V_DIS=' + [int][bool]$c.settings.disableInsteadOfUninstall + '\"'; $out += 'set \"V_REBOOT=' + [int][bool]$c.settings.rebootAfterRestore + '\"'; $out | Set-Content -Path '%TEMP_MGR_VARS%' -Encoding ASCII"
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; 'set V_SMART=' + [int][bool]$c.settings.smartFiltering; 'set V_PREVIEW=' + [int][bool]$c.settings.showPreview; 'set V_LOG=' + [int][bool]$c.settings.logToText; 'set V_DIS=' + [int][bool]$c.settings.disableInsteadOfUninstall; 'set V_REBOOT=' + [int][bool]$c.settings.rebootAfterRestore; 'set V_CORE=' + [int][bool]$c.settings.skipSystemCore; 'set V_ADB=' + [int][bool]$c.settings.forceADBRestart; 'set V_SIM=' + [int][bool]$c.settings.simulationMode" > "%TEMP_MGR_VARS%"
 call "%TEMP_MGR_VARS%"
 del "%TEMP_MGR_VARS%"
 
 if "!V_SMART!"=="1" (set "D_SMART=%TXT_GRN%ON %RESET%") else (set "D_SMART=%TXT_RED%OFF%RESET%")
 if "!V_PREVIEW!"=="1" (set "D_PREVIEW=%TXT_GRN%ON %RESET%") else (set "D_PREVIEW=%TXT_RED%OFF%RESET%")
 if "!V_LOG!"=="1" (set "D_LOG=%TXT_GRN%ON %RESET%") else (set "D_LOG=%TXT_RED%OFF%RESET%")
-if "!V_SIM!"=="1" (set "D_SIM=%TXT_GRN%ON %RESET%") else (set "D_SIM=%TXT_RED%OFF%RESET%")
 if "!V_DIS!"=="1" (set "D_DIS=%TXT_GRN%ON %RESET%") else (set "D_DIS=%TXT_RED%OFF%RESET%")
 if "!V_REBOOT!"=="1" (set "D_REBOOT=%TXT_GRN%ON %RESET%") else (set "D_REBOOT=%TXT_RED%OFF%RESET%")
+if "!V_CORE!"=="1" (set "D_CORE=%TXT_GRN%ON %RESET%") else (set "D_CORE=%TXT_RED%OFF%RESET%")
+if "!V_ADB!"=="1" (set "D_ADB=%TXT_GRN%ON %RESET%") else (set "D_ADB=%TXT_RED%OFF%RESET%")
+if "!V_SIM!"=="1" (set "D_SIM=%TXT_GRN%ON %RESET%") else (set "D_SIM=%TXT_RED%OFF%RESET%")
 
 cls
 echo.
@@ -120,17 +124,24 @@ echo.
 echo  %TXT_CYAN%[1]%RESET% Smart Filtering             [%D_SMART%] %TXT_GRAY%(Auto-skips apps already in target state)%RESET%
 echo  %TXT_CYAN%[2]%RESET% Show Previews               [%D_PREVIEW%] %TXT_GRAY%(Displays lists before running phases)%RESET%
 echo  %TXT_CYAN%[3]%RESET% Log to Text File            [%D_LOG%] %TXT_GRAY%(Saves debloat logs to /logs folder)%RESET%
-echo  %TXT_YEL%[4]%RESET% Simulation Mode             [%D_SIM%] %TXT_GRAY%(Prints ADB commands without running them)%RESET%
-echo  %TXT_YEL%[5]%RESET% Freeze instead of Uninstall [%D_DIS%] %TXT_GRAY%(Uses 'pm disable-user' instead of 'uninstall -k')%RESET%
-echo  %TXT_YEL%[6]%RESET% Auto-Reboot after Restore   [%D_REBOOT%] %TXT_GRAY%(Reboots device automatically when Restorer finishes)%RESET%
+echo  %TXT_YEL%[4]%RESET% Freeze instead of Uninstall [%D_DIS%] %TXT_GRAY%(Uses 'pm disable-user' instead of 'uninstall -k')%RESET%
+echo  %TXT_YEL%[5]%RESET% Auto-Reboot after Restore   [%D_REBOOT%] %TXT_GRAY%(Reboots device automatically when Restorer finishes)%RESET%
+echo  %TXT_YEL%[6]%RESET% Protect Core System Apps    [%D_CORE%] %TXT_GRAY%(Automatically skips Phase 3 Risky Apps)%RESET%
+echo  %TXT_YEL%[7]%RESET% Force ADB Restart on Boot   [%D_ADB%] %TXT_GRAY%(Kills and restarts ADB server upon script launch)%RESET%
+echo.
+@REM echo  %TXT_GRAY%--- [DEVELOPMENT] ------------------------------------------------------------------------------------------%RESET%
+echo  %TXT_GRAY%[DEVELOPMENT]
+echo  %TXT_MAG%[8]%RESET% [DEBUG] Simulation Mode     [%D_SIM%] %TXT_GRAY%(Prints ADB commands without running them to test logic)%RESET%
 echo.
 echo  %TXT_RED%[E]%RESET% Back to Main Menu
 echo.
-choice /c 123456E /n >nul
-if errorlevel 7 goto MAIN_MENU
-if errorlevel 6 call :TOGGLE_BOOL rebootAfterRestore
-if errorlevel 5 call :TOGGLE_BOOL disableInsteadOfUninstall
-if errorlevel 4 call :TOGGLE_BOOL simulationMode
+choice /c 12345678E /n >nul
+if errorlevel 9 goto MAIN_MENU
+if errorlevel 8 call :TOGGLE_BOOL simulationMode
+if errorlevel 7 call :TOGGLE_BOOL forceADBRestart
+if errorlevel 6 call :TOGGLE_BOOL skipSystemCore
+if errorlevel 5 call :TOGGLE_BOOL rebootAfterRestore
+if errorlevel 4 call :TOGGLE_BOOL disableInsteadOfUninstall
 if errorlevel 3 call :TOGGLE_BOOL logToText
 if errorlevel 2 call :TOGGLE_BOOL showPreview
 if errorlevel 1 call :TOGGLE_BOOL smartFiltering
