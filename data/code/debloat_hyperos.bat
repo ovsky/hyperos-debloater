@@ -78,7 +78,8 @@ echo  %TXT_GRAY%================================================================
 if "!SIM_MODE!"=="1" echo  %BG_YEL%  [DEBUG SIMULATION MODE ACTIVE] Commands will NOT be executed on the device!                        %RESET%
 echo.
 echo  %BG_CYAN%  STATUS: WAITING FOR DEVICE...                                                                                      %RESET%
-echo  %TXT_GRAY%  Auto-scanning for connected devices. Ensure USB Debugging is ON.%RESET%
+echo  %TXT_GRAY%Auto-scanning for connected devices...
+echo  %TXT_GRAY%Ensure USB Debugging is ON.%RESET%
 echo.
 echo  Press %TXT_RED%[E]%RESET% to cancel and return to Manager.
 
