@@ -16,14 +16,15 @@ set "TXT_RED=%ESC%[91m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
-:: Generate default config if missing
-if not exist config.cmd (
-    echo [!] config.cmd missing. Please ensure all files are in the same directory.
+if not exist config.json (
+    echo [!] config.json missing. Please ensure it is in the same directory.
     pause & exit
 )
 
 :MAIN_MENU
-call config.cmd
+:: Read Joyose Action from JSON via PowerShell
+for /f "delims=" %%A in ('powershell -NoProfile -Command "(Get-Content -Raw 'config.json' | ConvertFrom-Json).settings.joyoseAction"') do set "JOYOSE_ACTION=%%A"
+
 cls
 echo.
 echo  %TXT_GRAY%====================================================================================================================%RESET%
@@ -36,7 +37,7 @@ echo.
 echo  %TXT_GRN%[2]%RESET% Start Full Restorer %TXT_GRAY%(debloat_restore.bat)%RESET%
 echo      Recover all standard, advanced, risky, and hidden apps from the config database.
 echo.
-echo  %TXT_YEL%[3]%RESET% Manage Joyose Policy %TXT_GRAY%(Current: !JOYOSE_ACTION!)%RESET%
+echo  %TXT_YEL%[3]%RESET% Manage Joyose Policy %TXT_GRAY%(Current Setting: !JOYOSE_ACTION!)%RESET%
 echo      Configure how the script handles com.xiaomi.joyose (Thermal Management).
 echo.
 echo  %TXT_RED%[E]%RESET%xit
@@ -77,19 +78,10 @@ if errorlevel 3 set "NEW_JOYOSE=KEEP"
 if errorlevel 2 set "NEW_JOYOSE=REMOVE"
 if errorlevel 1 set "NEW_JOYOSE=ASK"
 
-:: Update config.cmd by rewriting the variable while maintaining the rest
-set "temp_file=%temp%\config_temp.cmd"
-if exist "%temp_file%" del "%temp_file%"
-for /f "delims=" %%A in (config.cmd) do (
-    echo %%A | findstr /i /c:"set \"JOYOSE_ACTION=" >nul
-    if errorlevel 1 (
-        echo %%A>>"%temp_file%"
-    ) else (
-        echo set "JOYOSE_ACTION=!NEW_JOYOSE!">>"%temp_file%"
-    )
-)
-move /Y "%temp_file%" "config.cmd" >nul
+:: Write change to JSON using PowerShell
+powershell -NoProfile -Command "$c = Get-Content -Raw 'config.json' | ConvertFrom-Json; $c.settings.joyoseAction = '%NEW_JOYOSE%'; $c | ConvertTo-Json -Depth 5 | Set-Content 'config.json'"
+
 echo.
-echo  %TXT_GRN%[v] Configuration saved.%RESET%
+echo  %TXT_GRN%[v] JSON Configuration updated.%RESET%
 timeout /t 2 >nul
 goto MAIN_MENU
