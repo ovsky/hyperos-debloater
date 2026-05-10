@@ -1,26 +1,27 @@
 @echo off
 setlocal EnableDelayedExpansion
 mode con: cols=120 lines=50
-title Xiaomi HyperOS Debloat Commander v17.5
+title Xiaomi HyperOS Debloat Commander v17.7
 
 :: Physically navigate to resolve bulletproof paths
 cd /d "%~dp0"
 cd ..\..
 set "ROOT_DIR=%cd%"
 set "CONFIG_PATH=%cd%\data\config\config.json"
+set "SERVICES_PATH=%cd%\data\config\services.json"
 set "LOGS_DIR=%cd%\logs"
 cd /d "%~dp0"
 
 :: Validate JSON Integrity
-powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json" >nul 2>&1
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $s = Get-Content -Raw '%SERVICES_PATH%' | ConvertFrom-Json" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] ERROR: "%CONFIG_PATH%" contains syntax errors or is missing.
+    echo [!] ERROR: One of your JSON files contains syntax errors or is missing.
     pause & exit
 )
 
-:: Secure JSON to Batch variable extraction via temporary script (Now includes dynamic Descriptions!)
+:: Securely dump JSON variables directly into Batch using the redirection method
 set "TEMP_VARS=%temp%\hyperos_vars_%RANDOM%.cmd"
-powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $out = @(); $out += 'set \"JOYOSE_ACTION=' + $c.settings.joyoseAction + '\"'; $out += 'set \"SKIP_NOT_INSTALLED=' + [int][bool]$c.settings.smartFiltering + '\"'; $out += 'set \"SHOW_PREVIEW=' + [int][bool]$c.settings.showPreview + '\"'; $out += 'set \"LOG_ENABLED=' + [int][bool]$c.settings.logToText + '\"'; $out += 'set \"ADB_PATH=' + $c.settings.defaultAdbPath + '\"'; $out += 'set \"apps_p1=' + ($c.phases.phase1_safe -join ' ') + '\"'; $out += 'set \"apps_p2=' + ($c.phases.phase2_advanced -join ' ') + '\"'; $out += 'set \"apps_p3=' + ($c.phases.phase3_risky -join ' ') + '\"'; $out += 'set \"apps_p4=' + ($c.phases.phase4_hidden -join ' ') + '\"'; $out += 'set \"apps_restore_only=' + ($c.phases.restore_only -join ' ') + '\"'; $c.descriptions.PSObject.Properties | ForEach-Object { $out += 'set \"DESC_' + $_.Name + '=' + $_.Value + '\"' }; $out | Set-Content -Path '%TEMP_VARS%' -Encoding ASCII"
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $s = Get-Content -Raw '%SERVICES_PATH%' | ConvertFrom-Json; 'set JOYOSE_ACTION=' + $c.settings.joyoseAction; 'set SKIP_NOT_INSTALLED=' + [int][bool]$c.settings.smartFiltering; 'set SHOW_PREVIEW=' + [int][bool]$c.settings.showPreview; 'set LOG_ENABLED=' + [int][bool]$c.settings.logToText; 'set SIM_MODE=' + [int][bool]$c.settings.simulationMode; 'set DISABLE_MODE=' + [int][bool]$c.settings.disableInsteadOfUninstall; 'set PROTECT_CORE=' + [int][bool]$c.settings.skipSystemCore; 'set FORCE_ADB=' + [int][bool]$c.settings.forceADBRestart; 'set ADB_PATH=' + $c.settings.defaultAdbPath; 'set apps_p1=' + ($s.phases.phase1_safe -join ' '); 'set apps_p2=' + ($s.phases.phase2_advanced -join ' '); 'set apps_p3=' + ($s.phases.phase3_risky -join ' '); 'set apps_p4=' + ($s.phases.phase4_hidden -join ' '); 'set apps_restore_only=' + ($s.phases.restore_only -join ' '); $s.descriptions.PSObject.Properties | ForEach-Object { 'set DESC_' + $_.Name + '=' + $_.Value }" > "%TEMP_VARS%"
 call "%TEMP_VARS%"
 del "%TEMP_VARS%"
 
@@ -56,7 +57,6 @@ if "!LOG_ENABLED!"=="1" (
     set "SAFE_TM=!SAFE_TM:.=-!"
     set "SAFE_TM=!SAFE_TM: =0!"
     set "LOGFILE=%LOGS_DIR%\Debloat_Log_!SAFE_DT!_!SAFE_TM!.txt"
-    
     echo [LOG STARTED] > "!LOGFILE!"
     echo Target OS: Xiaomi HyperOS >> "!LOGFILE!"
     echo Date: %date% %time% >> "!LOGFILE!"
@@ -72,6 +72,12 @@ echo.
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT COMMANDER %TXT_CYAN%-%TXT_WHT% System Ready%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
+if "!SIM_MODE!"=="1" echo  %BG_YEL%  [DEBUG SIMULATION MODE ACTIVE] Commands will NOT be executed on the device!                        %RESET%
+if "!FORCE_ADB!"=="1" (
+    echo.
+    echo  %TXT_GRAY%[System] Force ADB Restart enabled. Killing server...%RESET%
+    !ADB_CMD! kill-server >nul 2>&1
+)
 echo.
 echo  %BG_CYAN%  STATUS: WAITING FOR DEVICE...                                                                                      %RESET%
 !ADB_CMD! start-server >nul 2>&1
@@ -202,18 +208,29 @@ echo  %BOLD%App Name:%RESET%    %TXT_WHT%!sel_lbl!%RESET%
 echo  %BOLD%Package ID:%RESET%  %TXT_WHT%!sel_pkg!%RESET%
 echo  %BOLD%App Status:%RESET%  !APP_STATE_COLOR!!APP_STATE!%RESET%
 echo.
-echo  %TXT_GRN%[F]%RESET% Safe Remove   %TXT_CYAN%[R]%RESET% Unfreeze / Restore   %TXT_YEL%[B]%RESET%ack
+echo  %TXT_GRN%[F]%RESET% Remove / Freeze   %TXT_CYAN%[R]%RESET% Unfreeze / Restore   %TXT_YEL%[B]%RESET%ack
 choice /c FRB /n >nul
 if "!errorlevel!"=="3" goto EXPLORER_REBUILD_LIST
 if "!errorlevel!"=="1" (
-    !ADB_CMD! -s !TARGET_ID! shell pm uninstall -k --user 0 !sel_pkg! >nul 2>&1
-    echo %time% ^| UNINSTALL ^| !sel_pkg! >> "!LOGFILE!"
+    if "!DISABLE_MODE!"=="1" (
+        if "!SIM_MODE!"=="1" ( echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell pm disable-user --user 0 !sel_pkg! ) else ( !ADB_CMD! -s !TARGET_ID! shell pm disable-user --user 0 !sel_pkg! >nul 2>&1 )
+        echo %time% ^| FREEZE ^| !sel_pkg! >> "!LOGFILE!"
+    ) else (
+        if "!SIM_MODE!"=="1" ( echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell pm uninstall -k --user 0 !sel_pkg! ) else ( !ADB_CMD! -s !TARGET_ID! shell pm uninstall -k --user 0 !sel_pkg! >nul 2>&1 )
+        echo %time% ^| UNINSTALL ^| !sel_pkg! >> "!LOGFILE!"
+    )
 )
 if "!errorlevel!"=="2" (
-    !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing !sel_pkg! >nul 2>&1
-    !ADB_CMD! -s !TARGET_ID! shell pm enable !sel_pkg! >nul 2>&1
+    if "!SIM_MODE!"=="1" (
+        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell cmd package install-existing !sel_pkg!
+        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell pm enable !sel_pkg!
+    ) else (
+        !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing !sel_pkg! >nul 2>&1
+        !ADB_CMD! -s !TARGET_ID! shell pm enable !sel_pkg! >nul 2>&1
+    )
     echo %time% ^| RESTORE ^| !sel_pkg! >> "!LOGFILE!"
 )
+if "!SIM_MODE!"=="1" timeout /t 2 >nul
 call :CACHE_DEVICE_STATE
 timeout /t 1 >nul
 goto EXPLORER_ACTION_LOOP
@@ -228,19 +245,31 @@ echo  %TXT_GRAY%================================================================
 echo  %BOLD%%TXT_WHT%  STEP 2: SELECT OPERATION MODE%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo.
-echo  %TXT_GRN%[S]%RESET%afe Remove / Freeze %TXT_GRAY%(Highly Recommended for HyperOS)%RESET%
-echo  %TXT_CYAN%[R]%RESET%estore %TXT_GRAY%(Recovery Mode)%RESET%
+if "!DISABLE_MODE!"=="1" (
+    echo  %TXT_GRN%[F]%RESET%reeze Bloatware %TXT_GRAY%(Current Setting: pm disable-user)%RESET%
+) else (
+    echo  %TXT_GRN%[S]%RESET%afe Remove Bloatware %TXT_GRAY%(Current Setting: uninstall -k)%RESET%
+)
+echo  %TXT_CYAN%[R]%RESET%estore System Apps %TXT_GRAY%(Recovery Mode)%RESET%
 echo.
-choice /c SR /n >nul
+
+if "!DISABLE_MODE!"=="1" ( choice /c FR /n >nul ) else ( choice /c SR /n >nul )
+
 if errorlevel 2 (
     set "CMD_ACTION=RESTORE"
     set "MODE_NAME=RESTORE"
     set "MODE_VERB=Restore"
     set "apps_p4=!apps_p4! !apps_restore_only!"
 ) else (
-    set "CMD_ACTION=pm uninstall -k --user 0"
-    set "MODE_NAME=SAFE_REMOVE"
-    set "MODE_VERB=Safe Remove"
+    if "!DISABLE_MODE!"=="1" (
+        set "CMD_ACTION=pm disable-user --user 0"
+        set "MODE_NAME=FREEZE"
+        set "MODE_VERB=Freeze"
+    ) else (
+        set "CMD_ACTION=pm uninstall -k --user 0"
+        set "MODE_NAME=SAFE_REMOVE"
+        set "MODE_VERB=Safe Remove"
+    )
     
     :: Handle Joyose via JSON setting
     if /I "!JOYOSE_ACTION!"=="ASK" (
@@ -249,7 +278,7 @@ if errorlevel 2 (
         echo  %BG_YEL%  JOYOSE THERMAL MANAGEMENT                                                                                          %RESET%
         echo  %TXT_WHT%com.xiaomi.joyose%RESET% manages thermal components. Needed on some devices to prevent overheating.
         echo.
-        echo  Do you want to safely remove Joyose?
+        echo  Do you want to %MODE_VERB% Joyose?
         echo  %TXT_RED%[Y]%RESET%es - Remove it   %TXT_GRN%[N]%RESET%o - Keep it safe
         choice /c YN /n >nul
         if errorlevel 2 ( echo  -^> %TXT_GRN%Joyose kept.%RESET% ) else ( set "apps_p1=com.xiaomi.joyose !apps_p1!" )
@@ -296,6 +325,16 @@ for %%p in (%apps_p2%) do (
 )
 
 :PHASE3_INIT
+if "!PROTECT_CORE!"=="1" if "!MODE_NAME!" NEQ "RESTORE" (
+    cls
+    echo  %BG_RED%  PHASE 3/4 ^| Risky System Apps                                                                                      %RESET%
+    echo.
+    echo  %TXT_YEL%[!] Protect Core System Apps is ENABLED in config.%RESET%
+    echo  %TXT_GRAY%Skipping Phase 3 to prevent potential bootloops.%RESET%
+    timeout /t 3 >nul
+    goto PHASE4_INIT
+)
+
 cls
 echo  %BG_RED%  PHASE 3/4 ^| Risky System Apps                                                                                      %RESET%
 echo  %TXT_RED%[A]%RESET%uto Process %TXT_RED%(Risky)%RESET%   %TXT_RED%[M]%RESET%anual Review %TXT_GRN%(Recommended)%RESET%   %TXT_RED%[S]%RESET%kip Phase
@@ -360,14 +399,27 @@ call :CHECK_APP_STATE %pkg%
 if "!SKIP_NOT_INSTALLED!"=="1" (
     if "!MODE_NAME!"=="RESTORE" ( if "!APP_STATE!"=="Installed (Active)" goto :eof )
     if "!MODE_NAME!"=="SAFE_REMOVE" ( if "!APP_STATE!"=="Not Installed / Removed" goto :eof & if "!APP_STATE!"=="Uninstalled (User 0)" goto :eof & if "!APP_STATE!"=="Frozen (Disabled)" goto :eof )
+    if "!MODE_NAME!"=="FREEZE" ( if "!APP_STATE!"=="Not Installed / Removed" goto :eof & if "!APP_STATE!"=="Uninstalled (User 0)" goto :eof & if "!APP_STATE!"=="Frozen (Disabled)" goto :eof )
 )
 
 echo  Processing: %TXT_WHT%!lbl!%RESET% ^(!pkg!^)
 if "!MODE_NAME!"=="RESTORE" (
-    !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing %pkg% >nul 2>&1
-    !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1
-) else ( !ADB_CMD! -s !TARGET_ID! shell %CMD_ACTION% %pkg% >nul 2>&1 )
+    if "!SIM_MODE!"=="1" (
+        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell cmd package install-existing %pkg%
+        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell pm enable %pkg%
+    ) else (
+        !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing %pkg% >nul 2>&1
+        !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1
+    )
+) else ( 
+    if "!SIM_MODE!"=="1" (
+        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell %CMD_ACTION% %pkg%
+    ) else (
+        !ADB_CMD! -s !TARGET_ID! shell %CMD_ACTION% %pkg% >nul 2>&1
+    )
+)
 echo %time% ^| EXECUTE ^| %pkg% >> "!LOGFILE!"
+if "!SIM_MODE!"=="1" timeout /t 1 >nul
 goto :eof
 
 :ASK_USER
@@ -377,6 +429,7 @@ call :CHECK_APP_STATE %pkg%
 if "!SKIP_NOT_INSTALLED!"=="1" (
     if "!MODE_NAME!"=="RESTORE" ( if "!APP_STATE!"=="Installed (Active)" goto :eof )
     if "!MODE_NAME!"=="SAFE_REMOVE" ( if "!APP_STATE!"=="Not Installed / Removed" goto :eof & if "!APP_STATE!"=="Uninstalled (User 0)" goto :eof & if "!APP_STATE!"=="Frozen (Disabled)" goto :eof )
+    if "!MODE_NAME!"=="FREEZE" ( if "!APP_STATE!"=="Not Installed / Removed" goto :eof & if "!APP_STATE!"=="Uninstalled (User 0)" goto :eof & if "!APP_STATE!"=="Frozen (Disabled)" goto :eof )
 )
 
 set "CHOICES=YNE"
@@ -391,7 +444,10 @@ echo.
 echo  !P_TXT!
 
 choice /c !CHOICES! /n >nul
-if errorlevel 4 ( !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1 & goto :eof )
+if errorlevel 4 (
+    if "!SIM_MODE!"=="1" ( echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! shell pm enable %pkg% & timeout /t 2 >nul ) else ( !ADB_CMD! -s !TARGET_ID! shell pm enable %pkg% >nul 2>&1 )
+    goto :eof
+)
 if errorlevel 3 goto FINISH
 if errorlevel 2 goto :eof
 call :EXECUTE_ACTION %pkg% "!lbl!" "MANUAL"
@@ -399,9 +455,6 @@ goto :eof
 
 :GET_APP_NAME
 set "pkg=%~1"
-:: Dynamically pull the label from memory that was mapped from config.json
 set "APP_LABEL=!DESC_%pkg%!"
-
-:: Fallback to raw package name if it doesn't exist in config.json
 if "!APP_LABEL!"=="" set "APP_LABEL=%pkg%"
 goto :eof
