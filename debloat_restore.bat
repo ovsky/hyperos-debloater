@@ -4,25 +4,37 @@ mode con: cols=120 lines=40
 title Xiaomi HyperOS Restorer
 cd /d "%~dp0"
 
-:: Ensure ADB command is absolute if present in folder, else rely on PATH
-set "ADB_CMD=adb"
-if exist "%~dp0adb.exe" set "ADB_CMD="%~dp0adb.exe""
+:: Set absolute paths resolving from the code directory
+set "ROOT_DIR=%~dp0..\.."
+set "CONFIG_PATH=%~dp0..\config\config.json"
 
-:: ANSI Colors Setup
+:: Validate JSON
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [!] ERROR: %CONFIG_PATH% contains syntax errors or is missing.
+    pause & exit
+)
+
+:: Fetch apps and adb path from JSON
+for /f "tokens=1,* delims==" %%A in ('powershell -NoProfile -Command "& { $c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; Write-Output \"ADB_PATH=$($c.settings.defaultAdbPath)\"; Write-Output \"apps_p1=$($c.phases.phase1_safe -join ' ')\"; Write-Output \"apps_p2=$($c.phases.phase2_advanced -join ' ')\"; Write-Output \"apps_p3=$($c.phases.phase3_risky -join ' ')\"; Write-Output \"apps_p4=$($c.phases.phase4_hidden -join ' ')\"; Write-Output \"apps_restore_only=$($c.phases.restore_only -join ' ')\" }"') do (
+    set "%%A=%%B"
+)
+
+:: Ensure ADB command is absolute resolving to root
+set "ADB_CMD=!ADB_PATH!"
+if exist "%ROOT_DIR%\!ADB_PATH!" set "ADB_CMD="%ROOT_DIR%\!ADB_PATH!""
+
+:: Combine all packages
+set "ALL_APPS=%apps_p1% %apps_p2% %apps_p3% %apps_p4% %apps_restore_only% com.xiaomi.joyose"
+
+:: ANSI Colors
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do set "ESC=%%b"
 set "RESET=%ESC%[0m"
-set "BOLD=%ESC%[1m"
 set "BG_GRN=%ESC%[42m%ESC%[30m"
 set "TXT_CYAN=%ESC%[96m"
 set "TXT_GRN=%ESC%[92m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
-
-:: Load shared configuration
-call "%~dp0config.cmd"
-
-:: Combine all packages from all phases
-set "ALL_APPS=%apps_p1% %apps_p2% %apps_p3% %apps_p4% %apps_restore_only% com.xiaomi.joyose"
 
 cls
 echo.
@@ -39,11 +51,7 @@ echo.
 
 for %%a in (%ALL_APPS%) do (
     echo  %TXT_GRAY%Attempting to restore:%RESET% %TXT_WHT%%%a%RESET%
-    
-    :: Install-existing recovers uninstalled apps for User 0
     !ADB_CMD! shell cmd package install-existing --user 0 %%a >nul 2>&1
-    
-    :: Enable unfreezes apps that were disabled
     !ADB_CMD! shell pm enable --user 0 %%a >nul 2>&1
 )
 
@@ -54,6 +62,4 @@ echo  %TXT_GRAY%================================================================
 echo.
 echo  %TXT_WHT%Please restart your device to ensure all system apps reinitialize properly.%RESET%
 echo.
-echo  Press any key to return...
-pause >nul
-goto :eof
+pause
