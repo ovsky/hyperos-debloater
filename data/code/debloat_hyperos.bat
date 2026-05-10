@@ -1,16 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
 mode con: cols=120 lines=50
-title Xiaomi HyperOS Debloat Commander v17.7
+title Xiaomi HyperOS Debloat Commander v17.9
 
-:: Physically navigate to resolve bulletproof paths
-cd /d "%~dp0"
-cd ..\..
-set "ROOT_DIR=%cd%"
-set "CONFIG_PATH=%cd%\data\config\config.json"
-set "SERVICES_PATH=%cd%\data\config\services.json"
-set "LOGS_DIR=%cd%\logs"
-cd /d "%~dp0"
+:: Secure absolute paths
+for %%A in ("%~dp0..\..") do set "ROOT_DIR=%%~fA"
+set "CONFIG_PATH=%ROOT_DIR%\data\config\config.json"
+set "SERVICES_PATH=%ROOT_DIR%\data\config\services.json"
+set "LOGS_DIR=%ROOT_DIR%\logs"
 
 :: Validate JSON Integrity
 powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $s = Get-Content -Raw '%SERVICES_PATH%' | ConvertFrom-Json" >nul 2>&1
@@ -19,7 +16,7 @@ if %errorlevel% neq 0 (
     pause & exit
 )
 
-:: Securely dump JSON variables directly into Batch using the redirection method
+:: Securely dump JSON variables directly into Batch
 set "TEMP_VARS=%temp%\hyperos_vars_%RANDOM%.cmd"
 powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $s = Get-Content -Raw '%SERVICES_PATH%' | ConvertFrom-Json; 'set JOYOSE_ACTION=' + $c.settings.joyoseAction; 'set SKIP_NOT_INSTALLED=' + [int][bool]$c.settings.smartFiltering; 'set SHOW_PREVIEW=' + [int][bool]$c.settings.showPreview; 'set LOG_ENABLED=' + [int][bool]$c.settings.logToText; 'set SIM_MODE=' + [int][bool]$c.settings.simulationMode; 'set DISABLE_MODE=' + [int][bool]$c.settings.disableInsteadOfUninstall; 'set PROTECT_CORE=' + [int][bool]$c.settings.skipSystemCore; 'set FORCE_ADB=' + [int][bool]$c.settings.forceADBRestart; 'set ADB_PATH=' + $c.settings.defaultAdbPath; 'set apps_p1=' + ($s.phases.phase1_safe -join ' '); 'set apps_p2=' + ($s.phases.phase2_advanced -join ' '); 'set apps_p3=' + ($s.phases.phase3_risky -join ' '); 'set apps_p4=' + ($s.phases.phase4_hidden -join ' '); 'set apps_restore_only=' + ($s.phases.restore_only -join ' '); $s.descriptions.PSObject.Properties | ForEach-Object { 'set DESC_' + $_.Name + '=' + $_.Value }" > "%TEMP_VARS%"
 call "%TEMP_VARS%"
@@ -63,26 +60,28 @@ if "!LOG_ENABLED!"=="1" (
     echo -------------------------------------------------------- >> "!LOGFILE!"
 )
 
+:: ADB Server Initialization
+if "!FORCE_ADB!"=="1" (
+    !ADB_CMD! kill-server >nul 2>&1
+)
+!ADB_CMD! start-server >nul 2>&1
+
 :: ===============================================================================================
-::  STARTUP DASHBOARD
+::  AUTO-SCANNING DEVICE CONNECTION
 :: ===============================================================================================
-color 0B
+:CHECK_DEVICES
 cls
 echo.
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT COMMANDER %TXT_CYAN%-%TXT_WHT% System Ready%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 if "!SIM_MODE!"=="1" echo  %BG_YEL%  [DEBUG SIMULATION MODE ACTIVE] Commands will NOT be executed on the device!                        %RESET%
-if "!FORCE_ADB!"=="1" (
-    echo.
-    echo  %TXT_GRAY%[System] Force ADB Restart enabled. Killing server...%RESET%
-    !ADB_CMD! kill-server >nul 2>&1
-)
 echo.
 echo  %BG_CYAN%  STATUS: WAITING FOR DEVICE...                                                                                      %RESET%
-!ADB_CMD! start-server >nul 2>&1
+echo  %TXT_GRAY%  Auto-scanning for connected devices. Ensure USB Debugging is ON.%RESET%
+echo.
+echo  Press %TXT_RED%[E]%RESET% to cancel and return to Manager.
 
-:CHECK_DEVICES
 set count=0
 for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
     if not "%%a" == "" (
@@ -92,20 +91,24 @@ for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
     )
 )
 
-if %count%==0 (
-    echo  %BG_RED%  ERROR: CONNECTION FAILED                                                                                          %RESET%
-    echo  %TXT_RED%  [!]%RESET% No device detected. Check your ADB setup and USB Debugging.
-    pause >nul
-    cls
-    goto CHECK_DEVICES
+if !count! GTR 0 (
+    set "TARGET_ID=!device[1]!"
+    set "TARGET_MODEL=!model[1]!"
+    echo.
+    echo  %TXT_GRN%  [v]%RESET% Connected Model: %TXT_WHT%!TARGET_MODEL!%RESET%
+    timeout /t 2 >nul
+    call :CACHE_DEVICE_STATE
+    goto MAIN_MENU
 )
 
-set "TARGET_ID=!device[1]!"
-set "TARGET_MODEL=!model[1]!"
-echo  %TXT_GRN%  [v]%RESET% Connected Model: %TXT_WHT%!TARGET_MODEL!%RESET%
-timeout /t 1 >nul
-call :CACHE_DEVICE_STATE
+:: Wait 2 seconds, default to R (Retry), exit if user presses E
+choice /c RE /n /t 2 /d R >nul
+if errorlevel 2 goto :eof
+goto CHECK_DEVICES
 
+:: ===============================================================================================
+::  MAIN MENU
+:: ===============================================================================================
 :MAIN_MENU
 cls
 echo.
@@ -118,7 +121,7 @@ echo  %TXT_CYAN%[2] Interactive App Explorer%RESET%
 echo  %TXT_YEL%[3] Refresh Device Cache%RESET%
 echo  %TXT_RED%[E] Return to Manager%RESET%
 echo.
-echo  Press %TXT_GRN%[1]%RESET%, %TXT_CYAN%[2]%RESET%, %TXT_YEL%[3]%RESET%, or %TXT_RED%[E]%RESET%xit...
+echo  Press %TXT_GRN%[1]%RESET%, %TXT_CYAN%[2]%RESET%, %TXT_YEL%[3]%RESET%, or %TXT_RED%[E]%RESET% Exit...
 
 choice /c 123E /n >nul
 if errorlevel 4 goto :eof
@@ -433,8 +436,8 @@ if "!SKIP_NOT_INSTALLED!"=="1" (
 )
 
 set "CHOICES=YNE"
-set "P_TXT=>> %MODE_VERB%?  %TXT_GRN%[Y]%RESET%es   %TXT_RED%[N]%RESET%o   %TXT_CYAN%[E]%RESET%xit"
-if "!APP_STATE!"=="Frozen (Disabled)" ( set "CHOICES=YNEU" & set "P_TXT=>> %MODE_VERB%?  %TXT_GRN%[Y]%RESET%es   %TXT_RED%[N]%RESET%o   %TXT_YEL%[U]%RESET%nfreeze   %TXT_CYAN%[E]%RESET%xit" )
+set "P_TXT=>> %MODE_VERB%?  %TXT_GRN%[Y]%RESET%es   %TXT_RED%[N]%RESET%o   %TXT_CYAN%[E]%RESET% Exit"
+if "!APP_STATE!"=="Frozen (Disabled)" ( set "CHOICES=YNEU" & set "P_TXT=>> %MODE_VERB%?  %TXT_GRN%[Y]%RESET%es   %TXT_RED%[N]%RESET%o   %TXT_YEL%[U]%RESET%nfreeze   %TXT_CYAN%[E]%RESET% Exit" )
 
 cls
 echo  %TXT_GRAY%====================================================================================================================%RESET%

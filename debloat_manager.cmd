@@ -52,10 +52,10 @@ echo.
 echo  %TXT_MAG%[4]%RESET% Advanced Config Settings
 echo      Toggle smart filtering, simulation mode, uninstallation methods, and more.
 echo.
-echo  %TXT_RED%[E]%RESET%xit
+echo  %TXT_RED%[E]%RESET% Exit
 echo.
 echo  %TXT_GRAY%--------------------------------------------------------------------------------------------------------------------%RESET%
-echo  Press %TXT_CYAN%[1]%RESET%, %TXT_GRN%[2]%RESET%, %TXT_YEL%[3]%RESET%, %TXT_MAG%[4]%RESET%, or %TXT_RED%[E]%RESET%xit...
+echo  Press %TXT_CYAN%[1]%RESET%, %TXT_GRN%[2]%RESET%, %TXT_YEL%[3]%RESET%, %TXT_MAG%[4]%RESET%, or %TXT_RED%[E]%RESET% Exit...
 
 choice /c 1234E /n >nul
 if errorlevel 5 exit
@@ -77,8 +77,12 @@ echo  %TXT_GRAY%================================================================
 echo  %BOLD%%TXT_WHT%  JOYOSE THERMAL MANAGEMENT CONFIGURATION%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo.
+echo  %TXT_YEL%WARNING:%RESET% 
+echo  %TXT_GRAY%The Joyose package is really weird service. Disabling it may cause unexpected behavior in the system.
+echo  %TXT_GRAY%Disabling it may enhance the overall performance or cause severe thermal throttling under heavy load.
+echo  %TXT_GRAY%It is recommended to treat it with caution and only disable it if you know what you're doing.%RESET%
+echo.
 echo  The %TXT_WHT%com.xiaomi.joyose%RESET% app manages thermal components in the system.
-echo  %TXT_YEL%WARNING:%RESET% It may be required in low-end and mid-end devices to prevent overheating.
 echo  If you want to turn it off, do it wisely to avoid thermal throttling.
 echo.
 echo  How should the Debloater handle Joyose?
@@ -86,7 +90,7 @@ echo  %TXT_CYAN%[A]%RESET% Ask me every time I run the Debloater
 echo  %TXT_MAG%[R]%RESET% Automatically include it in the Debloat queue (Phase 1)
 echo  %TXT_GRN%[K]%RESET% Keep it safe (Never debloat it)
 echo.
-echo  %TXT_RED%[E] Exit without saving changes%RESET%
+echo  %TXT_RED%[E] Exit %TXT_WHT%without saving changes...%RESET%
 echo.
 choice /c ARKE /n >nul
 if errorlevel 4 goto MAIN_MENU
