@@ -4,6 +4,10 @@ mode con: cols=120 lines=40
 title Xiaomi HyperOS Debloat Manager
 cd /d "%~dp0"
 
+:: Define Paths based on the new structure
+set "CONFIG_PATH=data\config\config.json"
+set "CODE_DIR=data\code"
+
 :: ANSI Colors Setup
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do set "ESC=%%b"
 set "RESET=%ESC%[0m"
@@ -16,14 +20,14 @@ set "TXT_RED=%ESC%[91m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
-if not exist config.json (
-    echo [!] config.json missing. Please ensure it is in the same directory.
+if not exist "%CONFIG_PATH%" (
+    echo [!] %CONFIG_PATH% missing. Please ensure it is in the correct directory.
     pause & exit
 )
 
 :MAIN_MENU
 :: Read Joyose Action from JSON via PowerShell
-for /f "delims=" %%A in ('powershell -NoProfile -Command "(Get-Content -Raw 'config.json' | ConvertFrom-Json).settings.joyoseAction"') do set "JOYOSE_ACTION=%%A"
+for /f "delims=" %%A in ('powershell -NoProfile -Command "(Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json).settings.joyoseAction"') do set "JOYOSE_ACTION=%%A"
 
 cls
 echo.
@@ -31,10 +35,10 @@ echo  %TXT_GRAY%================================================================
 echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT MANAGER %TXT_CYAN%-%TXT_WHT% Master Dashboard%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo.
-echo  %TXT_CYAN%[1]%RESET% Start Debloater %TXT_GRAY%(debloat_hyperos.bat)%RESET%
+echo  %TXT_CYAN%[1]%RESET% Start Debloater %TXT_GRAY%(data/code/debloat_hyperos.bat)%RESET%
 echo      Launch the interactive tool to safely remove or freeze bloatware.
 echo.
-echo  %TXT_GRN%[2]%RESET% Start Full Restorer %TXT_GRAY%(debloat_restore.bat)%RESET%
+echo  %TXT_GRN%[2]%RESET% Start Full Restorer %TXT_GRAY%(data/code/debloat_restore.bat)%RESET%
 echo      Recover all standard, advanced, risky, and hidden apps from the config database.
 echo.
 echo  %TXT_YEL%[3]%RESET% Manage Joyose Policy %TXT_GRAY%(Current Setting: !JOYOSE_ACTION!)%RESET%
@@ -49,11 +53,11 @@ choice /c 123E /n >nul
 if errorlevel 4 exit
 if errorlevel 3 goto CONFIG_JOYOSE
 if errorlevel 2 (
-    call debloat_restore.bat
+    call "%CODE_DIR%\debloat_restore.bat"
     goto MAIN_MENU
 )
 if errorlevel 1 (
-    call debloat_hyperos.bat
+    call "%CODE_DIR%\debloat_hyperos.bat"
     goto MAIN_MENU
 )
 
@@ -79,7 +83,7 @@ if errorlevel 2 set "NEW_JOYOSE=REMOVE"
 if errorlevel 1 set "NEW_JOYOSE=ASK"
 
 :: Write change to JSON using PowerShell
-powershell -NoProfile -Command "$c = Get-Content -Raw 'config.json' | ConvertFrom-Json; $c.settings.joyoseAction = '%NEW_JOYOSE%'; $c | ConvertTo-Json -Depth 5 | Set-Content 'config.json'"
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $c.settings.joyoseAction = '%NEW_JOYOSE%'; $c | ConvertTo-Json -Depth 5 | Set-Content '%CONFIG_PATH%'"
 
 echo.
 echo  %TXT_GRN%[v] JSON Configuration updated.%RESET%
