@@ -2,23 +2,26 @@
 setlocal EnableDelayedExpansion
 mode con: cols=120 lines=40
 title Xiaomi HyperOS Restorer
+
+:: Physically navigate to resolve bulletproof paths
+cd /d "%~dp0"
+cd ..\..
+set "ROOT_DIR=%cd%"
+set "CONFIG_PATH=%cd%\data\config\config.json"
 cd /d "%~dp0"
 
-:: Set absolute paths resolving from the code directory
-set "ROOT_DIR=%~dp0..\.."
-set "CONFIG_PATH=%~dp0..\config\config.json"
-
-:: Validate JSON
+:: Validate JSON using absolute path
 powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] ERROR: %CONFIG_PATH% contains syntax errors or is missing.
+    echo [!] ERROR: "%CONFIG_PATH%" contains syntax errors or is missing.
     pause & exit
 )
 
-:: Fetch apps and adb path from JSON
-for /f "tokens=1,* delims==" %%A in ('powershell -NoProfile -Command "& { $c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; Write-Output \"ADB_PATH=$($c.settings.defaultAdbPath)\"; Write-Output \"apps_p1=$($c.phases.phase1_safe -join ' ')\"; Write-Output \"apps_p2=$($c.phases.phase2_advanced -join ' ')\"; Write-Output \"apps_p3=$($c.phases.phase3_risky -join ' ')\"; Write-Output \"apps_p4=$($c.phases.phase4_hidden -join ' ')\"; Write-Output \"apps_restore_only=$($c.phases.restore_only -join ' ')\" }"') do (
-    set "%%A=%%B"
-)
+:: Secure JSON to Batch variable extraction via temporary script
+set "TEMP_VARS=%temp%\hyperos_vars_%RANDOM%.cmd"
+powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertFrom-Json; $out = @(); $out += 'set \"ADB_PATH=' + $c.settings.defaultAdbPath + '\"'; $out += 'set \"apps_p1=' + ($c.phases.phase1_safe -join ' ') + '\"'; $out += 'set \"apps_p2=' + ($c.phases.phase2_advanced -join ' ') + '\"'; $out += 'set \"apps_p3=' + ($c.phases.phase3_risky -join ' ') + '\"'; $out += 'set \"apps_p4=' + ($c.phases.phase4_hidden -join ' ') + '\"'; $out += 'set \"apps_restore_only=' + ($c.phases.restore_only -join ' ') + '\"'; $out | Set-Content -Path '%TEMP_VARS%' -Encoding ASCII"
+call "%TEMP_VARS%"
+del "%TEMP_VARS%"
 
 :: Ensure ADB command is absolute resolving to root
 set "ADB_CMD=!ADB_PATH!"
