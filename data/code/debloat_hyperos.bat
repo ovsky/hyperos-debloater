@@ -56,7 +56,7 @@ if "!LOG_ENABLED!"=="1" (
     set "SAFE_TM=%TIME::=-%"
     set "SAFE_TM=!SAFE_TM:.=-!"
     set "SAFE_TM=!SAFE_TM: =0!"
-    set "LOGFILE=%LOGS_DIR%\Debloat_Log_!SAFE_DT!_!SAFE_TM!.txt"
+    set "LOGFILE=%LOGS_DIR%\Debloat_Log_!SAFE_DT!_!SAFE_TM!.log"
     echo [LOG STARTED] > "!LOGFILE!"
     echo Target OS: Xiaomi HyperOS >> "!LOGFILE!"
     echo Date: %date% %time% >> "!LOGFILE!"
