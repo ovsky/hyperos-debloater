@@ -2,11 +2,12 @@
 setlocal EnableDelayedExpansion
 mode con: cols=120 lines=40
 title Xiaomi HyperOS Debloat Manager
-cd /d "%~dp0"
 
-:: Define Paths based on the new structure
-set "CONFIG_PATH=data\config\config.json"
-set "CODE_DIR=data\code"
+:: Safely define paths from the root directory
+cd /d "%~dp0"
+set "ROOT_DIR=%cd%"
+set "CONFIG_PATH=%cd%\data\config\config.json"
+set "CODE_DIR=%cd%\data\code"
 
 :: ANSI Colors Setup
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do set "ESC=%%b"
@@ -21,7 +22,7 @@ set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
 if not exist "%CONFIG_PATH%" (
-    echo [!] %CONFIG_PATH% missing. Please ensure it is in the correct directory.
+    echo [!] ERROR: "%CONFIG_PATH%" is missing. 
     pause & exit
 )
 
@@ -35,10 +36,10 @@ echo  %TXT_GRAY%================================================================
 echo  %BOLD%%TXT_WHT%  HYPEROS DEBLOAT MANAGER %TXT_CYAN%-%TXT_WHT% Master Dashboard%RESET%
 echo  %TXT_GRAY%====================================================================================================================%RESET%
 echo.
-echo  %TXT_CYAN%[1]%RESET% Start Debloater %TXT_GRAY%(data/code/debloat_hyperos.bat)%RESET%
+echo  %TXT_CYAN%[1]%RESET% Start Debloater %TXT_GRAY%(data\code\debloat_hyperos.bat)%RESET%
 echo      Launch the interactive tool to safely remove or freeze bloatware.
 echo.
-echo  %TXT_GRN%[2]%RESET% Start Full Restorer %TXT_GRAY%(data/code/debloat_restore.bat)%RESET%
+echo  %TXT_GRN%[2]%RESET% Start Full Restorer %TXT_GRAY%(data\code\debloat_restore.bat)%RESET%
 echo      Recover all standard, advanced, risky, and hidden apps from the config database.
 echo.
 echo  %TXT_YEL%[3]%RESET% Manage Joyose Policy %TXT_GRAY%(Current Setting: !JOYOSE_ACTION!)%RESET%

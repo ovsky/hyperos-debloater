@@ -46,7 +46,7 @@ Experience a clean, highly readable terminal interface designed for maximum effi
 <details>
 <summary><strong>📱 Initial Device Detection</strong></summary>
 <br>
-<a href="./data/interface/device_detection.png" target="_blank"><img src="./data/interface/device_detection.png" width="1800" alt="Device Detection"></a>
+<a href="./data/images/interface/device_detection.png" target="_blank"><img src="./data/images/interface/device_detection.png" width="1800" alt="Device Detection"></a>
 </details>
 
 ---
@@ -54,7 +54,7 @@ Experience a clean, highly readable terminal interface designed for maximum effi
 <details>
 <summary><strong>⚙️ App Management Workflow</strong></summary>
 <br>
-<a href="./data/interface/workflow_app_management.png" target="_blank"><img src="./data/interface/workflow_app_management.png" width="1800" alt="App Management"></a>
+<a href="./data/images/interface/workflow_app_management.png" target="_blank"><img src="./data/images/interface/workflow_app_management.png" width="1800" alt="App Management"></a>
 </details>
 
 ---
@@ -62,7 +62,7 @@ Experience a clean, highly readable terminal interface designed for maximum effi
 <details>
 <summary><strong>⚡ Automatic Debloating Process</strong></summary>
 <br>
-<a href="./data/interface/workflow_debloating.png" target="_blank"><img src="./data/interface/workflow_debloating.png" width="1800" alt="Automatic Debloating"></a>
+<a href="./data/images/interface/workflow_debloating.png" target="_blank"><img src="./data/images/interface/workflow_debloating.png" width="1800" alt="Automatic Debloating"></a>
 </details>
 
 ----
@@ -70,7 +70,7 @@ Experience a clean, highly readable terminal interface designed for maximum effi
 <details>
 <summary><strong>🎯 Manual Debloating (Interactive UI)</strong></summary>
 <br>
-<a href="./data/interface/workflow_interactive.png" target="_blank"><img src="./data/interface/workflow_interactive.png" width="1800" alt="Interactive UI"></a>
+<a href="./data/images/interface/workflow_interactive.png" target="_blank"><img src="./data/images/interface/workflow_interactive.png" width="1800" alt="Interactive UI"></a>
 </details>
 
 ---
@@ -81,10 +81,10 @@ The script targets specific tiers of pre-installed software, categorized visuall
 
 | 🛡️ Database Categories & Previews |
 | :--- |
-| **🟢 Safe Removals**<br><br>**Popular, mostly useless apps that are 100% safe to remove.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/apps_preview/debloat_safe.png" target="_blank"><img src="./data/apps_preview/debloat_safe.png" width="1000" alt="Safe Removals"></a><br><sup><a href="./data/apps_preview/debloat_safe.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
-| **🟡 Advanced Telemetry**<br><br>**Trackers utilized by Xiaomi/POCO/Redmi to harvest and share data.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/apps_preview/debloat_advanced.png" target="_blank"><img src="./data/apps_preview/debloat_advanced.png" width="1000" alt="Advanced Telemetry"></a><br><sup><a href="./data/apps_preview/debloat_advanced.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
-| **🟠 System Bloat**<br><br>**Redundant system apps easily replaced by superior, open-source alternatives.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/apps_preview/debloat_system.png" target="_blank"><img src="./data/apps_preview/debloat_system.png" width="1000" alt="System Bloat"></a><br><sup><a href="./data/apps_preview/debloat_system.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
-| **🔴 Hidden Services**<br><br>**Obscured background packages that consume resources without providing user value.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/apps_preview/debloat_hidden.png" target="_blank"><img src="./data/apps_preview/debloat_hidden.png" width="1000" alt="Hidden Services"></a><br><sup><a href="./data/apps_preview/debloat_hidden.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
+| **🟢 Safe Removals**<br><br>**Popular, mostly useless apps that are 100% safe to remove.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/images/preview/debloat_safe.png" target="_blank"><img src="./data/images/preview/debloat_safe.png" width="1000" alt="Safe Removals"></a><br><sup><a href="./data/images/preview/debloat_safe.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
+| **🟡 Advanced Telemetry**<br><br>**Trackers utilized by Xiaomi/POCO/Redmi to harvest and share data.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/images/preview/debloat_advanced.png" target="_blank"><img src="./data/images/preview/debloat_advanced.png" width="1000" alt="Advanced Telemetry"></a><br><sup><a href="./data/images/preview/debloat_advanced.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
+| **🟠 System Bloat**<br><br>**Redundant system apps easily replaced by superior, open-source alternatives.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/images/preview/debloat_system.png" target="_blank"><img src="./data/images/preview/debloat_system.png" width="1000" alt="System Bloat"></a><br><sup><a href="./data/images/preview/debloat_system.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
+| **🔴 Hidden Services**<br><br>**Obscured background packages that consume resources without providing user value.**<br><br><details open><summary><strong>View Apps Preview</strong></summary><a href="./data/images/preview/debloat_hidden.png" target="_blank"><img src="./data/images/preview/debloat_hidden.png" width="1000" alt="Hidden Services"></a><br><sup><a href="./data/images/preview/debloat_hidden.png" target="_blank"> 🔍 View in Full Size</a></sup></details> |
 
 ---
 
