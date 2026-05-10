@@ -94,7 +94,7 @@ for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
 
 if %count%==0 (
     echo  %BG_RED%  ERROR: CONNECTION FAILED                                                                                          %RESET%
-    echo  %TXT_RED%  [!]%RESET% No device detected. Check USB Debugging.
+    echo  %TXT_RED%  [!]%RESET% No device detected. Check your ADB setup and USB Debugging.
     pause >nul
     cls
     goto CHECK_DEVICES

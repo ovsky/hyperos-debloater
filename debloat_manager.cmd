@@ -83,9 +83,10 @@ echo  If you want to turn it off, do it wisely to avoid thermal throttling.
 echo.
 echo  How should the Debloater handle Joyose?
 echo  %TXT_CYAN%[A]%RESET% Ask me every time I run the Debloater
-echo  %TXT_RED%[R]%RESET% Automatically include it in the Debloat queue (Phase 1)
+echo  %TXT_MAG%[R]%RESET% Automatically include it in the Debloat queue (Phase 1)
 echo  %TXT_GRN%[K]%RESET% Keep it safe (Never debloat it)
-echo  %TXT_GRAY%[E] Exit without saving changes%RESET%
+echo.
+echo  %TXT_RED%[E] Exit without saving changes%RESET%
 echo.
 choice /c ARKE /n >nul
 if errorlevel 4 goto MAIN_MENU

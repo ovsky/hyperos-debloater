@@ -2,7 +2,7 @@
   "settings": {
     "joyoseAction": "ASK",
     "smartFiltering": true,
-    "showPreview": false,
+    "showPreview": true,
     "logToText": true,
     "disableInsteadOfUninstall": true,
     "rebootAfterRestore": false,
