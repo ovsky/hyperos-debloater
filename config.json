@@ -1,0 +1,53 @@
+{
+  "settings": {
+    "joyoseAction": "ASK",
+    "smartFiltering": true,
+    "showPreview": false,
+    "logToText": true,
+    "defaultAdbPath": "adb.exe"
+  },
+  "phases": {
+    "phase1_safe": [
+      "com.miui.analytics", "com.miui.systemAdSolution", "com.miui.msa.global", "com.miui.daemon", 
+      "com.facebook.appmanager", "com.facebook.services", "com.facebook.system", "com.facebook.katana", 
+      "com.miui.cleanmaster", "com.miui.miservice", "com.miui.touchassistant", "com.miui.hybrid", 
+      "com.miui.hybrid.accessory", "com.xiaomi.discover", "com.xiaomi.ab", "com.miui.cit", "com.miui.wmsvc", 
+      "com.miui.userguide", "com.miui.backup", "com.xiaomi.xmsf", "com.mi.global.bbs", "com.mi.global.shop", 
+      "com.miui.nextpay", "com.miui.tsmclient", "com.miui.greenguard", "com.xiaomi.gamecenter", 
+      "com.xiaomi.gamecenter.sdk.service", "com.miui.uireporter", "com.miui.securityadd", "com.baidu.input_mi", 
+      "com.iflytek.inputmethod.miui", "com.sohu.inputmethod.sogou.xiaomi", "com.tencent.soter.soterserver", 
+      "com.bsp.catchlog", "com.xiaomi.security.onetrack", "com.wapi.wapicertmanage", "com.miui.newmidrive", 
+      "com.xiaomi.aireco", "com.qti.qualcomm.deviceinfo", "com.unionpay.tsmservice.mi", "com.miui.guardprovider", 
+      "com.miui.powerinsight", "com.miui.yellowpage", "com.xiaomi.pass", "com.mipay.wallet"
+    ],
+    "phase2_advanced": [
+      "com.miui.compass", "com.miui.weather2", "com.miui.notes", "com.miui.calculator", "com.miui.videoplayer", 
+      "com.miui.player", "com.xiaomi.glgm", "com.miui.gallery", "com.xiaomi.midrop", "com.miui.fmservice", 
+      "com.miui.fm", "com.android.stk", "com.xiaomi.payment", "com.xiaomi.vipaccount", "com.duokan.phone.remotecontroller", 
+      "com.xiaomi.smarthome", "com.android.calendar", "com.miui.calendar", "com.android.deskclock", 
+      "com.android.providers.downloads.ui", "com.android.fileexplorer", "com.mi.android.globalFileexplorer", 
+      "com.android.soundrecorder", "com.android.email", "com.miui.screenrecorder", "com.miui.huanji", 
+      "com.android.browser", "com.miui.browser", "cn.wps.moffice_eng.xiaomi.lite", "com.miui.qr", 
+      "com.miui.mediaviewer", "com.miui.mediaeditor"
+    ],
+    "phase3_risky": [
+      "com.miui.personalassistant", "com.miui.appvault", "com.miui.themestore", "com.android.thememanager", 
+      "com.xiaomi.thememanager", "com.miui.findmy", "com.xiaomi.finddevice", "com.xiaomi.scanner", 
+      "com.miui.scanner", "com.xiaomi.market", "com.xiaomi.mipicks", "com.miui.securitycenter", "com.xiaomi.account", 
+      "com.miui.cloudservice", "com.miui.micloudsync", "com.miui.cloudbackup", "com.xiaomi.roaming", "com.miui.roaming"
+    ],
+    "phase4_hidden": [
+      "com.miui.aod", "com.xiaomi.hypercomm", "com.miui.audiomonitor", "com.miui.voiceassistProxy", 
+      "com.xiaomi.aiasst.service", "com.xiaomi.aiasst.vision", "com.xiaomi.mibrain.speech", "com.xiaomi.metoknlp", 
+      "com.android.dreams.basic", "com.android.dreams.phototable", "com.android.printspooler", "com.android.bips", 
+      "com.android.bookmarkprovider", "com.android.traceur", "com.miui.contentextension", "com.miui.carlink", 
+      "com.miui.thirdappassistant", "com.xiaomi.aicr", "com.miui.misightservice", "com.xiaomi.barrage", 
+      "com.xiaomi.mirror", "com.miui.voiceassistoverlay"
+    ],
+    "restore_only": [
+      "com.miui.extraphoto", "com.miui.face", "com.android.egg", "com.miui.freeform", "com.miui.mishare.connectivity", 
+      "com.miui.phrase", "com.miui.vsimcore", "com.miui.virtualsim", "com.lbe.security.miui", "com.miui.permission", 
+      "com.android.providers.media.module", "com.android.providers.media", "com.android.settings"
+    ]
+  }
+}
