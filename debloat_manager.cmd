@@ -210,4 +210,4 @@ goto CONFIG_ADVANCED_INIT
 :RESTORE_DEFAULTS_SILENT
 :: Clone default file over the active config
 copy /Y "%CONFIG_DEFAULT_PATH%" "%CONFIG_PATH%" >nul
-goto :eof
+goto :eof

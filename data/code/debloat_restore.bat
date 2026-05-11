@@ -23,7 +23,7 @@ del "%TEMP_VARS%"
 
 :: Ensure ADB command is absolute
 set "ADB_CMD=!ADB_PATH!"
-if exist "%ROOT_DIR%\!ADB_PATH!" set "ADB_CMD="%ROOT_DIR%\!ADB_PATH!""
+if exist "%ROOT_DIR%\!ADB_PATH!" set "ADB_CMD=%ROOT_DIR%\!ADB_PATH!"
 
 :: Combine all packages
 set "ALL_APPS=%apps_p1% %apps_p2% %apps_p3% %apps_p4% %apps_restore_only% com.xiaomi.joyose"
@@ -43,7 +43,7 @@ set "TXT_RED=%ESC%[91m"
 set "TXT_GRAY=%ESC%[90m"
 set "TXT_WHT=%ESC%[97m"
 
-!ADB_CMD! start-server >nul 2>&1
+"!ADB_CMD!" start-server >nul 2>&1
 
 :: ===============================================================================================
 ::  AUTO-SCANNING DEVICE CONNECTION
@@ -63,11 +63,11 @@ echo.
 echo  Press %TXT_RED%[E]%RESET% to cancel and return to Manager.
 
 set count=0
-for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
-    if not "%%a" == "" (
+for /f "skip=1 tokens=1,2,*" %%a in ('"!ADB_CMD!" devices -l') do (
+    if "%%b" == "device" (
         set /a count+=1
         set "device[!count!]=%%a"
-        for /f "tokens=*" %%m in ('!ADB_CMD! -s %%a shell getprop ro.product.model') do set "model[!count!]=%%m"
+        for /f "tokens=*" %%m in ('"!ADB_CMD!" -s %%a shell getprop ro.product.model') do set "model[!count!]=%%m"
     )
 )
 
@@ -101,11 +101,11 @@ echo.
 for %%a in (%ALL_APPS%) do (
     echo  %TXT_GRAY%Attempting to restore:%RESET% %TXT_WHT%%%a%RESET%
     if "!SIM_MODE!"=="1" (
-        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing --user 0 %%a
-        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! -s !TARGET_ID! shell pm enable --user 0 %%a
+        echo  %TXT_MAG%[DEBUG]%RESET% "!ADB_CMD!" -s !TARGET_ID! shell cmd package install-existing --user 0 %%a
+        echo  %TXT_MAG%[DEBUG]%RESET% "!ADB_CMD!" -s !TARGET_ID! shell pm enable --user 0 %%a
     ) else (
-        !ADB_CMD! -s !TARGET_ID! shell cmd package install-existing --user 0 %%a >nul 2>&1
-        !ADB_CMD! -s !TARGET_ID! shell pm enable --user 0 %%a >nul 2>&1
+        "!ADB_CMD!" -s !TARGET_ID! shell cmd package install-existing --user 0 %%a >nul 2>&1
+        "!ADB_CMD!" -s !TARGET_ID! shell pm enable --user 0 %%a >nul 2>&1
     )
 )
 
@@ -118,13 +118,13 @@ echo.
 if "!REBOOT_RESTORE!"=="1" (
     echo  %TXT_CYAN%Auto-Reboot is enabled. Rebooting device...%RESET%
     if "!SIM_MODE!"=="1" (
-        echo  %TXT_MAG%[DEBUG]%RESET% !ADB_CMD! -s !TARGET_ID! reboot
+        echo  %TXT_MAG%[DEBUG]%RESET% "!ADB_CMD!" -s !TARGET_ID! reboot
     ) else (
-        !ADB_CMD! -s !TARGET_ID! reboot
+        "!ADB_CMD!" -s !TARGET_ID! reboot
     )
 ) else (
     echo  %TXT_WHT%Please restart your device manually to ensure all system apps reinitialize properly.%RESET%
 )
 
 echo.
-pause
+pause
