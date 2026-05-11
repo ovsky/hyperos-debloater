@@ -22,9 +22,14 @@ powershell -NoProfile -Command "$c = Get-Content -Raw '%CONFIG_PATH%' | ConvertF
 call "%TEMP_VARS%"
 del "%TEMP_VARS%"
 
+:: Create immutable base copies of phase lists
+set "BASE_APPS_P1=%apps_p1%"
+set "BASE_APPS_P4=%apps_p4%"
+set "BASE_APPS_RESTORE_ONLY=%apps_restore_only%"
+
 :: ADB Setup
 set "ADB_CMD=!ADB_PATH!"
-if exist "%ROOT_DIR%\!ADB_PATH!" set "ADB_CMD="%ROOT_DIR%\!ADB_PATH!""
+if exist "%ROOT_DIR%\!ADB_PATH!" set "ADB_CMD=%ROOT_DIR%\!ADB_PATH!"
 
 :: ANSI Colors Setup
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do set "ESC=%%b"
@@ -84,8 +89,8 @@ echo.
 echo  Press %TXT_RED%[E]%RESET% to cancel and return to Manager.
 
 set count=0
-for /f "skip=1 tokens=1,*" %%a in ('!ADB_CMD! devices -l') do (
-    if not "%%a" == "" (
+for /f "skip=1 tokens=1,2,*" %%a in ('!ADB_CMD! devices -l') do (
+    if "%%b" == "device" (
         set /a count+=1
         set "device[!count!]=%%a"
         for /f "tokens=*" %%m in ('!ADB_CMD! -s %%a shell getprop ro.product.model') do set "model[!count!]=%%m"
@@ -135,7 +140,7 @@ if errorlevel 1 goto MODE_SELECT
 :: ===============================================================================================
 :INTERACTIVE_EXPLORER_INIT
 set "SHOW_ACTIVE_ONLY=0"
-set "all_db_apps=%apps_p1% %apps_p2% %apps_p3% %apps_p4% %apps_restore_only% com.xiaomi.joyose"
+set "all_db_apps=%apps_p1% %apps_p2% %apps_p3% %apps_p4% com.xiaomi.joyose"
 
 :EXPLORER_REBUILD_LIST
 cls
@@ -243,6 +248,10 @@ goto EXPLORER_ACTION_LOOP
 ::  STANDARD DEBLOAT: STEP 2 & JOYOSE LOGIC
 :: ===============================================================================================
 :MODE_SELECT
+:: Reinitialize working lists from immutable base copies
+set "apps_p1=%BASE_APPS_P1%"
+set "apps_p4=%BASE_APPS_P4%"
+set "apps_restore_only=%BASE_APPS_RESTORE_ONLY%"
 cls
 echo.
 echo  %TXT_GRAY%====================================================================================================================%RESET%
@@ -461,4 +470,4 @@ goto :eof
 set "pkg=%~1"
 set "APP_LABEL=!DESC_%pkg%!"
 if "!APP_LABEL!"=="" set "APP_LABEL=%pkg%"
-goto :eof
+goto :eof

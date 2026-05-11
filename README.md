@@ -65,7 +65,7 @@ Experience a clean, highly readable terminal interface designed for maximum effi
 <a href="./data/images/interface/workflow_debloating.png" target="_blank"><img src="./data/images/interface/workflow_debloating.png" width="1800" alt="Automatic Debloating"></a>
 </details>
 
-----
+---
 
 <details>
 <summary><strong>🎯 Manual Debloating (Interactive UI)</strong></summary>
