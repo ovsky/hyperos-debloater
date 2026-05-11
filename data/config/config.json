@@ -1,0 +1,14 @@
+{
+  "settings": {
+    "joyoseAction": "ASK",
+    "smartFiltering": true,
+    "showPreview": true,
+    "logToText": true,
+    "disableInsteadOfUninstall": true,
+    "rebootAfterRestore": false,
+    "skipSystemCore": true,
+    "forceADBRestart": false,
+    "defaultAdbPath": "adb.exe",
+    "simulationMode": false
+  }
+}
