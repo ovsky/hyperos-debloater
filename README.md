@@ -2,11 +2,11 @@
 
 # 🚀 Xiaomi HyperOS Debloat Commander
 
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](#)
-[![Target](https://img.shields.io/badge/Target-HyperOS%20%7C%20MIUI-FF6900?style=for-the-badge&logo=xiaomi&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](#)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-0078D6?style=for-the-badge)
+![Target](https://img.shields.io/badge/Target-HyperOS%20%7C%20MIUI-FF6900?style=for-the-badge&logo=xiaomi&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)
 
-*A powerful, interactive, and completely reversible Windows batch utility designed to safely eradicate telemetry, intrusive ads, and bloatware from Xiaomi, Redmi, and POCO devices, that supports Android 13+.*
+*A powerful, interactive, and completely reversible utility for Windows, Linux, and macOS designed to safely eradicate telemetry, intrusive ads, and bloatware from Xiaomi, Redmi, and POCO devices, that supports Android 13+.*
 
 
 **[NO ROOT REQUIRED]** 
@@ -93,8 +93,9 @@ The script targets specific tiers of pre-installed software, categorized visuall
 Before running the Commander, ensure your environment is set up:
 
 1. **Windows PC:** Fully tested and supported on Windows 10 & 11.
-2. **ADB Installed:** Ensure ADB is added to your system's Environment Variables, *or* simply place `adb.exe` in the exact same folder as the script.
-3. **Enable Developer Options & USB Debugging:**
+2. **Linux or macOS:** Run the `.sh` scripts from a terminal with standard Unix tools available (`sh`, `awk`, `sed`, `grep`, and `sort`).
+3. **ADB Installed:** Ensure ADB is available in your `PATH`, *or* place the platform-specific `adb`/`adb.exe` binary in the project folder and set `defaultAdbPath` in `data/config/config.json`.
+4. **Enable Developer Options & USB Debugging:**
    * Navigate to `Settings` > `About phone` > Tap `OS version` **7 times**.
    * Navigate to `Additional settings` > `Developer options`.
    * Toggle on **USB debugging**.
@@ -104,9 +105,11 @@ Before running the Commander, ensure your environment is set up:
 
 ## 🚀 Quick Start Guide
 
-1. **Download** the latest release of `HyperOS_Ultimate_v15.bat` from the [Releases](#) tab.
+1. **Download** the latest release from the [Releases](https://github.com/ovsky/hyperos-debloater/releases) tab.
 2. **Connect** your device to your PC via USB. *(When prompted on your phone, accept the RSA fingerprint).*
-3. **Execute** the `.bat` file as Administrator.
+3. **Run the manager for your platform:**
+   * Windows: execute `debloat_manager.cmd` as Administrator.
+   * Linux/macOS: run `chmod +x debloat_manager.sh data/code/*.sh`, then `./debloat_manager.sh`.
 4. The Commander will instantly detect your device hardware and initialize the Main Menu.
 
 ### Main Menu Overview
